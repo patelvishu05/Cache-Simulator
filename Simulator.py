@@ -6,6 +6,7 @@ import random
 import argparse
 import logging
 import gzip
+from Cache import *
 
 ######## constants ##############
 cache_line_size = 64
@@ -62,10 +63,21 @@ hit = 0
 miss = 0
 total = 0
 
+cache = Cache(parse_size(args.size),args.assoc,cache_line_size)
+
 for line in traceFile:
     words = line.split(" ")
-
     # This will skip blank lines and EOFs
     if len(words) == 3:
         accessMode = words[1]
         virtAddrss = words[2]
+        result = cache.access(accessMode, virtAddrss)
+        if result is True:
+            hit += 1
+        else:
+            miss += 1
+    total+=1
+
+missRate = miss/total
+missPercentage = missRate * 100
+print('Miss Rate: %.2f%%'%missPercentage)
