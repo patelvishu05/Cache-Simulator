@@ -69,13 +69,11 @@ for line in traceFile:
     words = line.split(" ")
     # This will skip blank lines and EOFs
     if len(words) == 3:
-        accessMode = words[1]
-        virtAddrss = words[2]
-        result = cache.access(accessMode, virtAddrss)
-        if result is True:
-            hit += 1
-        else:
-            miss += 1
+        accessMode = words[1].upper()
+        virtAddrss = int(words[2],16)
+        result = cache.getAddress(accessMode, virtAddrss)
+        if result == 1:
+            miss+=1
     total+=1
 
 missRate = miss/total

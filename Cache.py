@@ -1,45 +1,86 @@
 #!/usr/bin/python3
-from collections import defaultdict
-from TableEntry import *
 import math
+from WriteBack import *
 
 class Cache:
 
-    def __init__(self, cacheSize, ways, cacheLineSize):
+    def __init__(self, cacheSize, ways, cacheLineSize, hitCost=0):
         self.cacheSize = cacheSize
         self.ways = ways
         self.cacheLineSize = cacheLineSize
-        
-        self.numberSets = (cacheSize / cacheLineSize) / ways
-        self.entries = self.numberSets * ways
-        self.entries_per_set = self.entries / self.numberSets
-
+        self.hitCost = hitCost
+        self.writeBack = WriteBack()
+        self.numberSets = int((cacheSize / cacheLineSize) / ways)
+        self.writeBack.cache = self
+        self.sets = [CacheSet(ways) for i in range(self.numberSets)]
         self.bitSet = math.log(self.numberSets, 2)
         self.bitData = math.log(cacheLineSize, 2)
-        self.shiftAmount = self.bitSet + self.bitData
+        self.shiftAmount = int(self.bitSet + self.bitData)
 
-        self.cache = [defaultdict(int) for sets in range(int(self.numberSets))]
+    def getAddress(self,mode,address):
 
-    def access(self, mode, address):
-        currentAddress = int(address, 16)
-        tag = currentAddress >> int (self.shiftAmount)
-        setId = ((currentAddress - (tag << int(self.shiftAmount))) >> int(self.bitData))
-        entry = TableEntry (setId, tag, 1)
-
-        if entry.tag not in self.cache[setId].keys():
-            if len(self.cache[setId]) == self.entries_per_set:
-                oldest_tag = max(self.lru_cache[setId], key=lambda time_stamp: self.lru_cache[set_id][time_stamp])
-                del (self.cache[setId][oldest_tag])
-                self.cache[setId].__setitem__(entry.tag, entry.timeStamp)
-            else:
-                self.cache[setId].__setitem__(entry.tag, entry.timeStamp)
-            self.increment_time_stamp(entry, setId)
-            return False
+        if type(address) == tuple:
+            tag,setId,offset = address
         else:
-            self.cache[setId].__setitem__(entry.tag, 0)
-            self.increment_time_stamp(entry, setId)
-            return True
+            offset = address & (self.cacheLineSize - 1)
+            setId = address >> int(math.log(self.cacheLineSize, 2)) & (self.numberSets - 1)
+            tag = address >> self.shiftAmount
 
-    def increment_time_stamp(self, entry, setId):
-        for entry.tag in self.cache[setId]:
-            self.cache[setId][entry.tag] += 1
+
+        if mode == 'W':
+            return self.hitCost + self.writeBack.write((tag,setId,offset))
+
+        if mode == 'R':
+            currentSet = self.sets[setId]
+            
+            if currentSet.read(tag):
+                return self.hitCost
+            else:
+                index = self.LRU(currentSet)
+
+                removed = currentSet.ways[index]
+                removed['valid'] = 1
+                removed['tag'] = tag
+                removed['last_access'] = currentSet.timeStamp
+
+                return 1 + self.hitCost
+
+    def LRU(self,cache):
+        for i, cacheLine in enumerate(cache.ways):
+            if not cacheLine["valid"]:
+                return i
+                
+        leastPolicy = cache.ways[0]
+        index = 0
+        for i, cacheLine in enumerate(cache.ways[1:]):
+            if leastPolicy["last_access"] > cacheLine["last_access"]:
+                leastPolicy = cacheLine
+                index = i+1
+        return index
+
+
+class CacheSet:
+
+    def __init__(self, ways):
+        self.ways = [
+            {
+                'tag': None,
+                'valid': 0,
+                'last_access': 0,
+            } for i in range(ways)
+        ]
+        self.timeStamp = 0
+
+    def read(self, tag):
+        self.timeStamp += 1
+
+        for way in self.ways:
+            if tag == way['tag']:
+                way['last_access'] = self.timeStamp
+                return True
+        return False
+
+    def write(self, tag):
+        self.timeStamp += 1               
+
+    
