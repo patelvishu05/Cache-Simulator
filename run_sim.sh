@@ -15,17 +15,4 @@ fi
 # python3 Simulator.py -s 256KB -a 16 -f naive_dgemm.trace.txt
 # python3 Simulator.py -s 256KB -a 16 -f naive_dgemm_full.trace.txt
 # python3 Simulator.py -s 256KB -a 16 -f openblas_dgemm.trace.txt
-
-
-# python3 Simulator.py -s 1KB -a 16 -f 1KB_64B
-# python3 Simulator.py -s 1KB -a 1 -f 1KB_64B
-
-# python3 Simulator.py -s 1KB -a 16 -f 4MB_4
-# python3 Simulator.py -s 1KB -a 1 -f 4MB_4
-# python3 Simulator.py -s 4MB -a 16 -f 4MB_4
-# python3 Simulator.py -s 4MB -a 1 -f 4MB_4
-
-# python3 Simulator.py -s 1KB -a 16 -f 32MB_4B
-# python3 Simulator.py -s 1KB -a 1 -f 32MB_4B
-# python3 Simulator.py -s 32MB -a 16 -f 32MB_4B
-# python3 Simulator.py -s 32MB -a 1 -f 32MB_4B
+# python3 Simulator.py -s 256KB -a 16 -f full_dgemm.traces.txt

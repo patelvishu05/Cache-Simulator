@@ -78,4 +78,4 @@ for line in traceFile:
 
 missRate = miss/total
 missPercentage = missRate * 100
-print('Miss Rate: %.2f%%'%missPercentage)
+print('Cache miss rate: %.2f%%'%missPercentage)
